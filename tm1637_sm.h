@@ -10,16 +10,20 @@ typedef struct
     uint16_t 		dio_pin;
 } tm1637_struct;
 
-void tm1637Init(tm1637_struct *tm1637_handler);
-void tm1637DisplayDecimal(tm1637_struct *tm1637_handler, int v, int displaySeparator);
-void tm1637SetBrightness(tm1637_struct *tm1637_handler, char brightness);
+typedef enum
+{
+	bright_off,
+	bright_15percent,
+	bright_30percent,
+	bright_45percent,
+	bright_60percent,
+	bright_75percent,
+	bright_90percent,
+	bright_full,
+} brightness_enum;
 
-
-
-/* example:
-	 tm1637Init();
-	 tm1637SetBrightness(2);
-	 tm1637DisplayDecimal(1045,1);
- */
+void tm1637_Init(tm1637_struct *tm1637_handler);
+void tm1637_Display_Decimal(tm1637_struct *tm1637_handler, uint32_t value, uint8_t displaySeparator);
+void tm1637_Set_Brightness(tm1637_struct *tm1637_handler, brightness_enum brightness);
 
 #endif // TM1637_SM_H_INCLUDED

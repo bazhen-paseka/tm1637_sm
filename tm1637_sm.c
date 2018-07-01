@@ -1,6 +1,9 @@
 #include "stm32f1xx_hal.h"
 #include "tm1637_sm.h"
 
+#define CLK_PORT_CLK_ENABLE __HAL_RCC_GPIOB_CLK_ENABLE
+#define DIO_PORT_CLK_ENABLE __HAL_RCC_GPIOB_CLK_ENABLE
+
 void _tm1637Start(tm1637_struct tm1637_handler);
 void _tm1637Stop(tm1637_struct tm1637_handler);
 void _tm1637ReadResult(tm1637_struct tm1637_handler);
@@ -11,23 +14,14 @@ void _tm1637ClkLow(tm1637_struct tm1637_handler);
 void _tm1637DioHigh(tm1637_struct tm1637_handler);
 void _tm1637DioLow(tm1637_struct tm1637_handler);
 
-// Configuration.
-
-// #define CLK_PORT GPIOB
-// #define DIO_PORT GPIOB
-// #define CLK_PIN GPIO_PIN_0
-// #define DIO_PIN GPIO_PIN_1
-#define CLK_PORT_CLK_ENABLE __HAL_RCC_GPIOB_CLK_ENABLE
-#define DIO_PORT_CLK_ENABLE __HAL_RCC_GPIOB_CLK_ENABLE
-
 const char segmentMap[] = {
     0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, // 0-7
     0x7f, 0x6f, 0x77, 0x7c, 0x39, 0x5e, 0x79, 0x71, // 8-9, A-F
     0x00
 };
+/*****************************************************************/
 
-
-void tm1637Init(tm1637_struct *tm1637_handler)
+void tm1637_Init(tm1637_struct *tm1637_handler)
 {
 	CLK_PORT_CLK_ENABLE();
 	DIO_PORT_CLK_ENABLE();
@@ -58,16 +52,17 @@ void tm1637Init(tm1637_struct *tm1637_handler)
 	  HAL_GPIO_Init(DIO_PORT, &GPIO_InitStruct);
 	*/
 }
+/*****************************************************************/
 
-void tm1637DisplayDecimal(tm1637_struct *tm1637_handler, int v, int displaySeparator)
+void tm1637_Display_Decimal(tm1637_struct *tm1637_handler, uint32_t value, uint8_t DisplaySeparator)
 {
     unsigned char digitArr[4];
     for (int i = 0; i < 4; ++i) {
-        digitArr[i] = segmentMap[v % 10];
-        if (i == 2 && displaySeparator) {
+        digitArr[i] = segmentMap[value % 10];
+        if (i == 2 && DisplaySeparator) {
             digitArr[i] |= 1 << 7;
         }
-        v /= 10;
+        value /= 10;
     }
 
     _tm1637Start(*tm1637_handler);
@@ -86,11 +81,13 @@ void tm1637DisplayDecimal(tm1637_struct *tm1637_handler, int v, int displaySepar
 
     _tm1637Stop(*tm1637_handler);
 }
+/*****************************************************************/
 
-// Valid brightness values: 0 - 8.
-// 0 = display off.
-void tm1637SetBrightness(tm1637_struct *tm1637_handler, char brightness)
+void tm1637_Set_Brightness(tm1637_struct *tm1637_handler, brightness_enum brightness)
 {
+	// Valid brightness values: 0 - 8.
+	// 0 = display off.
+
     // Brightness command:
     // 1000 0XXX = display off
     // 1000 1BBB = display on, brightness 0-7
@@ -101,6 +98,7 @@ void tm1637SetBrightness(tm1637_struct *tm1637_handler, char brightness)
     _tm1637ReadResult(*tm1637_handler);
     _tm1637Stop(*tm1637_handler);
 }
+/*****************************************************************/
 
 void _tm1637Start(tm1637_struct tm1637_handler)
 {
@@ -156,6 +154,7 @@ void _tm1637DelayUsec(unsigned int i)
         }
     }
 }
+/*****************************************************************/
 
 void _tm1637ClkHigh(tm1637_struct tm1637_handler)
 {
