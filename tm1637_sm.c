@@ -1,14 +1,11 @@
 #include "stm32f1xx_hal.h"
 #include "tm1637_sm.h"
 
-#define CLK_PORT_CLK_ENABLE __HAL_RCC_GPIOB_CLK_ENABLE
-#define DIO_PORT_CLK_ENABLE __HAL_RCC_GPIOB_CLK_ENABLE
-
 void _tm1637Start(tm1637_struct tm1637_handler);
 void _tm1637Stop(tm1637_struct tm1637_handler);
 void _tm1637ReadResult(tm1637_struct tm1637_handler);
-void _tm1637WriteByte(tm1637_struct tm1637_handler, unsigned char b);
-void _tm1637DelayUsec(unsigned int i);
+void _tm1637WriteByte(tm1637_struct tm1637_handler, uint8_t byte);
+void _tm1637DelayUsec(uint32_t i);
 void _tm1637ClkHigh(tm1637_struct tm1637_handler);
 void _tm1637ClkLow(tm1637_struct tm1637_handler);
 void _tm1637DioHigh(tm1637_struct tm1637_handler);
@@ -23,34 +20,19 @@ const char segmentMap[] = {
 
 void tm1637_Init(tm1637_struct *tm1637_handler)
 {
-	CLK_PORT_CLK_ENABLE();
-	DIO_PORT_CLK_ENABLE();
-	GPIO_InitTypeDef g = {0};
-	g.Pull = GPIO_PULLUP;
-	g.Mode = GPIO_MODE_OUTPUT_PP; // PP = push pull
-	g.Speed = GPIO_SPEED_FREQ_LOW;
-	g.Pin = tm1637_handler->clk_pin;
-	HAL_GPIO_Init(tm1637_handler->clk_port, &g);
-	g.Pin = tm1637_handler->dio_pin;
-	HAL_GPIO_Init(tm1637_handler->dio_port, &g);
+	HAL_GPIO_WritePin(tm1637_handler->clk_port, tm1637_handler->clk_pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(tm1637_handler->dio_port, tm1637_handler->dio_pin , GPIO_PIN_RESET);
 
-	/*
-	  GPIO_InitTypeDef GPIO_InitStruct;
+	GPIO_InitTypeDef tm1637_gpio = {0};
+	tm1637_gpio.Pull = GPIO_PULLUP;
+	tm1637_gpio.Mode = GPIO_MODE_OUTPUT_PP; // PP = push pull
+	tm1637_gpio.Speed = GPIO_SPEED_FREQ_LOW;
 
-	  CLK_PORT_CLK_ENABLE
-	  HAL_GPIO_WritePin(CLK_PORT, CLK_PIN, GPIO_PIN_RESET);
-	  GPIO_InitStruct.Pin = CLK_PIN;
-	  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	  HAL_GPIO_Init(CLK_PORT, &GPIO_InitStruct);
+	tm1637_gpio.Pin = tm1637_handler->clk_pin;
+	HAL_GPIO_Init(tm1637_handler->clk_port, &tm1637_gpio);
 
-	  DIO_PORT_CLK_ENABLE
-	  HAL_GPIO_WritePin(DIO_PORT, DIO_PIN, GPIO_PIN_RESET);
-	  GPIO_InitStruct.Pin = DIO_PIN;
-	  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	  HAL_GPIO_Init(DIO_PORT, &GPIO_InitStruct);
-	*/
+	tm1637_gpio.Pin = tm1637_handler->dio_pin;
+	HAL_GPIO_Init(tm1637_handler->dio_port, &tm1637_gpio);
 }
 /*****************************************************************/
 
@@ -129,24 +111,24 @@ void _tm1637ReadResult(tm1637_struct tm1637_handler)
     _tm1637ClkLow(tm1637_handler);
 }
 
-void _tm1637WriteByte(tm1637_struct tm1637_handler, unsigned char b)
+void _tm1637WriteByte(tm1637_struct tm1637_handler, uint8_t byte)
 {
-    for (int i = 0; i < 8; ++i) {
+    for (uint8_t i = 0; i < 8; ++i) {
         _tm1637ClkLow(tm1637_handler);
-        if (b & 0x01) {
+        if (byte & 0x01) {
             _tm1637DioHigh(tm1637_handler);
         }
         else {
             _tm1637DioLow(tm1637_handler);
         }
         _tm1637DelayUsec(3);
-        b >>= 1;
+        byte >>= 1;
         _tm1637ClkHigh(tm1637_handler);
         _tm1637DelayUsec(3);
     }
 }
 
-void _tm1637DelayUsec(unsigned int i)
+void _tm1637DelayUsec(uint32_t i)
 {
     for (; i>0; i--) {
         for (int j = 0; j < 10; ++j) {
