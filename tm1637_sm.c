@@ -1,5 +1,5 @@
 #include "stm32f1xx_hal.h"
-#include "stm32_tm1637.h"
+#include "tm1637_sm.h"
 
 void _tm1637Start(void);
 void _tm1637Stop(void);
