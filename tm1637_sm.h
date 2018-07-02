@@ -19,11 +19,17 @@ typedef enum
 	bright_60percent	= 4,
 	bright_75percent	= 5,
 	bright_90percent	= 6,
-	bright_full			= 7,
-} brightness_enum;
+	bright_full			= 7
+}	brightness_enum;
+
+typedef enum
+{
+	no_double_dot		= 0,
+	   double_dot		= 1
+}	double_dot_enum;
 
 void tm1637_Init(tm1637_struct *tm1637_handler);
-void tm1637_Display_Decimal(tm1637_struct *tm1637_handler, uint32_t value, uint8_t DisplaySeparator);
-void tm1637_Set_Brightness(tm1637_struct *tm1637_handler, brightness_enum brightness);
+void tm1637_Display_Decimal(tm1637_struct *tm1637_handler, uint32_t _tm_value, double_dot_enum double_dot);
+void tm1637_Set_Brightness(tm1637_struct *tm1637_handler, brightness_enum _brightness);
 
 #endif // TM1637_SM_H_INCLUDED
