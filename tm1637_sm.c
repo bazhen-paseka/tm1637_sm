@@ -11,7 +11,8 @@ void _tm1637ClkLow(tm1637_struct tm1637_handler);
 void _tm1637DioHigh(tm1637_struct tm1637_handler);
 void _tm1637DioLow(tm1637_struct tm1637_handler);
 
-const char segmentMap[] = {
+const uint8_t segmentMap[] =
+{
     0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, // 0-7
     0x7f, 0x6f, 0x77, 0x7c, 0x39, 0x5e, 0x79, 0x71, // 8-9, A-F
     0x00
@@ -20,6 +21,11 @@ const char segmentMap[] = {
 
 void tm1637_Init(tm1637_struct *tm1637_handler)
 {
+	if (tm1637_handler == NULL)
+	{
+		return;
+	}
+
 	HAL_GPIO_WritePin(tm1637_handler->clk_port, tm1637_handler->clk_pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(tm1637_handler->dio_port, tm1637_handler->dio_pin , GPIO_PIN_RESET);
 
@@ -36,15 +42,27 @@ void tm1637_Init(tm1637_struct *tm1637_handler)
 }
 /*****************************************************************/
 
-void tm1637_Display_Decimal(tm1637_struct *tm1637_handler, uint32_t value, uint8_t DisplaySeparator)
+void tm1637_Display_Decimal(tm1637_struct *tm1637_handler, uint32_t _tm_value, double_dot_enum _double_dot)
 {
-    unsigned char digitArr[4];
-    for (int i = 0; i < 4; ++i) {
-        digitArr[i] = segmentMap[value % 10];
-        if (i == 2 && DisplaySeparator) {
+	if (tm1637_handler == NULL)
+	{
+		return;
+	}
+
+	if (_double_dot != no_double_dot)
+	{
+		_double_dot = double_dot;
+	}
+
+    uint8_t digitArr[4];
+    for (uint8_t i = 0; i < 4; ++i)
+    {
+        digitArr[i] = segmentMap[_tm_value % 10];
+        if (i == 2 && _double_dot)
+        {
             digitArr[i] |= 1 << 7;
         }
-        value /= 10;
+        _tm_value /= 10;
     }
 
     _tm1637Start(*tm1637_handler);
@@ -56,7 +74,8 @@ void tm1637_Display_Decimal(tm1637_struct *tm1637_handler, uint32_t value, uint8
     _tm1637WriteByte(*tm1637_handler, 0xc0);
     _tm1637ReadResult(*tm1637_handler);
 
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < 4; ++i)
+    {
         _tm1637WriteByte(*tm1637_handler, digitArr[3 - i]);
         _tm1637ReadResult(*tm1637_handler);
     }
@@ -65,8 +84,18 @@ void tm1637_Display_Decimal(tm1637_struct *tm1637_handler, uint32_t value, uint8
 }
 /*****************************************************************/
 
-void tm1637_Set_Brightness(tm1637_struct *tm1637_handler, brightness_enum brightness)
+void tm1637_Set_Brightness(tm1637_struct *tm1637_handler, brightness_enum _brightness)
 {
+	if (tm1637_handler == NULL)
+	{
+		return;
+	}
+
+	if (_brightness > bright_full)
+	{
+		_brightness = bright_full;
+	}
+
 	// Valid brightness values: 0 - 8.
 	// 0 = display off.
 
@@ -76,7 +105,7 @@ void tm1637_Set_Brightness(tm1637_struct *tm1637_handler, brightness_enum bright
     // X = don't care
     // B = brightness
     _tm1637Start(*tm1637_handler);
-    _tm1637WriteByte(*tm1637_handler, 0x87 + brightness);
+    _tm1637WriteByte(*tm1637_handler, 0x87 + _brightness);
     _tm1637ReadResult(*tm1637_handler);
     _tm1637Stop(*tm1637_handler);
 }
@@ -113,12 +142,15 @@ void _tm1637ReadResult(tm1637_struct tm1637_handler)
 
 void _tm1637WriteByte(tm1637_struct tm1637_handler, uint8_t byte)
 {
-    for (uint8_t i = 0; i < 8; ++i) {
+    for (uint8_t i = 0; i < 8; ++i)
+    {
         _tm1637ClkLow(tm1637_handler);
-        if (byte & 0x01) {
+        if (byte & 0x01)
+        {
             _tm1637DioHigh(tm1637_handler);
         }
-        else {
+        else
+        {
             _tm1637DioLow(tm1637_handler);
         }
         _tm1637DelayUsec(3);
@@ -130,8 +162,10 @@ void _tm1637WriteByte(tm1637_struct tm1637_handler, uint8_t byte)
 
 void _tm1637DelayUsec(uint32_t i)
 {
-    for (; i>0; i--) {
-        for (int j = 0; j < 10; ++j) {
+    for (; i>0; i--)
+    {
+        for (int j = 0; j < 10; ++j)
+        {
             __asm__ __volatile__("nop\n\t":::"memory");
         }
     }
