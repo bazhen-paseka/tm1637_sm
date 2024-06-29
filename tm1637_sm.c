@@ -49,9 +49,9 @@ void TM1637_Display_Decimal(tm1637_struct *tm1637_handler, uint32_t _tm_value, d
 		_double_dot = double_dot;
 	}
 
-    uint8_t digitArr[4];
+    uint8_t digitArr[6];
 
-    for (uint8_t i = 0; i < 4; ++i) {
+    for (uint8_t i = 0; i < tm1637_handler->digit_qnt; i++) {
         digitArr[i] = segmentMap[_tm_value % 10];
         if (i == 2 && _double_dot) {
             digitArr[i] |= 1 << 7;
@@ -68,11 +68,22 @@ void TM1637_Display_Decimal(tm1637_struct *tm1637_handler, uint32_t _tm_value, d
     _tm1637WriteByte(*tm1637_handler, 0xc0);
     _tm1637ReadResult(*tm1637_handler);
 
-    for (int i = 0; i < 4; ++i) {
-        _tm1637WriteByte(*tm1637_handler, digitArr[3 - i]);
-        _tm1637ReadResult(*tm1637_handler);
+    if (tm1637_handler->digit_qnt == 4) {
+		for (int i = 3; i >= 0; i--) {
+			_tm1637WriteByte(*tm1637_handler, digitArr[i]);
+			_tm1637ReadResult(*tm1637_handler);
+		}
     }
-
+    if (tm1637_handler->digit_qnt == 6) {
+    	for ( int i=3; i<6; i++) {
+    		_tm1637WriteByte(*tm1637_handler, digitArr[i]);
+    		_tm1637ReadResult(*tm1637_handler);
+    	}
+       	for ( int i=0; i<3; i++) {
+			_tm1637WriteByte(*tm1637_handler, digitArr[i]);
+			_tm1637ReadResult(*tm1637_handler);
+       	}
+    }
     _tm1637Stop(*tm1637_handler);
 } //*****************************************************************
 
