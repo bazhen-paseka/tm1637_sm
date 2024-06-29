@@ -8,6 +8,8 @@ typedef struct {
 
     GPIO_TypeDef 	*dio_port;
     uint16_t 		dio_pin;
+
+    uint8_t			digit_qnt;
 } tm1637_struct;
 //*****************************************************************
 
@@ -40,6 +42,7 @@ void TM1637_Display_Decimal	(tm1637_struct *tm1637_handler, uint32_t _tm_value, 
 	//	h1_tm1637.clk_port = GPIOB;
 	//	h1_tm1637.dio_pin  = GPIO_PIN_7;
 	//	h1_tm1637.dio_port = GPIOB;
+	//	h1_tm1637.digit_qnt= 6;	// or 4 for 4 digits
 	//	TM1637_Init(&h1_tm1637);
 	//	TM1637_Set_Brightness(&h1_tm1637, bright_15percent);
 	//	TM1637_Display_Decimal(&h1_tm1637, 8689 , double_dot);
